@@ -1,0 +1,69 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Text Rating App</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+<h1>Rate Your Text</h1>
+<form method="POST" action="/api/rate">
+    <label for="text">Enter your text:</label><br>
+    <textarea id="text" name="text" rows="5" cols="30"></textarea><br><br>
+    <div class="g-recaptcha" data-sitekey="6LfZxOEpAAAAACdz6Q_p_mI-50rF3ebh-grfabMu"></div>
+    <br>
+    <button type="submit" id="submit-button">Rate Text</button>
+    <span id="loading" style="display: none;">Loading...</span>
+</form>
+<br>
+<p id="result"></p>
+
+<script>
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submit-button');
+    const loadingElement = document.getElementById('loading');
+    const resultElement = document.getElementById('result');
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        submitButton.disabled = true;
+        loadingElement.style.display = 'block';
+
+        const text = document.getElementById('text').value;
+        const recaptchaResponse = grecaptcha.getResponse();
+
+        if (!recaptchaResponse) {
+            submitButton.disabled = false;
+            loadingElement.style.display = 'none';
+            alert('Please complete the reCAPTCHA challenge.');
+            return;
+        }
+
+        fetch('/api/rate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-recaptcha-response': recaptchaResponse
+            },
+            body: JSON.stringify({ text })
+        })
+            .then(response => response.json())
+            .then(data => {
+                submitButton.disabled = false;
+                loadingElement.style.display = 'none';
+
+                resultElement.innerHTML = data.message + "<br>";
+                if (data.data) {
+                    resultElement.innerHTML += "Rating: " + data.data;
+                }
+            })
+            .catch(error => {
+                submitButton.disabled = false;
+                loadingElement.style.display = 'none';
+                console.error(error);
+                resultElement.innerHTML = "Error: Something went wrong.";
+            });
+    });
+</script>
+</body>
+</html>

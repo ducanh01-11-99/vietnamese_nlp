@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Text Rating App</title>
+</head>
+<body>
+<h1>Rate Your Text</h1>
+<form method="POST" action="/api/rate">
+    <label for="text">Enter your text:</label><br>
+    <textarea id="text" name="text" rows="5" cols="30"></textarea><br><br>
+    <button type="submit">Rate Text</button>
+</form>
+<br>
+<p id="result"></p>
+
+<script>
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const text = document.getElementById('text').value;
+
+        fetch('/api/rate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = data.message + "<br>";
+                if (data.data) {
+                    document.getElementById('result').innerHTML += "Rating: " + data.data;
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                document.getElementById('result').innerHTML = "Error: Something went wrong.";
+            });
+    });
+</script>
+</body>
+</html>
